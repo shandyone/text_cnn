@@ -64,7 +64,6 @@ def training():
         list(zip(x_train, y_train)), batch_size, num_epochs)
 
 
-
     cross_entropy = -tf.reduce_sum(y_actual * tf.log(y_predict))
     train_step = tf.train.GradientDescentOptimizer(0.0005).minimize(cross_entropy)
     correct_prediction = tf.equal(tf.argmax(y_predict, 1), tf.argmax(y_actual, 1))
