@@ -91,14 +91,15 @@ def load_data():
     dev_sample_index = -1 * int(dev_sample_percentage * float(len(y)))
     x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[dev_sample_index:]
     y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
+    vocab_size = len(vocab_processor.vocabulary_)
     print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
     print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
-    return x_train, x_dev, y_train, y_dev
+    return x_train, x_dev, y_train, y_dev, vocab_size
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     #temp = []
     #temp = load_data_and_labels(positive_data_file,negative_data_file)
-    load_data()
+#    load_data()
 
 
 '''

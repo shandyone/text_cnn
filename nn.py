@@ -7,11 +7,12 @@ from data_helpers import load_data
 from data_helpers import batch_iter
 
 
-def Text_CNN(sequence_length, num_classes, vocab_size, embedding_size, filter_sizes, num_filters):
+def text_cnn(sequence_length, num_classes, vocab_size, embedding_size, filter_sizes, num_filters, input_x, input_y, dropout_keep_prob):
 
-    input_x = tf.placeholder([None, sequence_length], tf.int32)
-    input_y = tf.placeholder([None, num_classes], tf.float32)
-    dropout_keep_prob = tf.placeholder(tf.float32)
+    # with tf.name_scope("feed"):
+    #     input_x = tf.placeholder([None, sequence_length], tf.int32)
+    #     input_y = tf.placeholder([None, num_classes], tf.float32)
+    #     dropout_keep_prob = tf.placeholder(tf.float32)
 
     with tf.name_scope("Embedding_layer"):
         # Embedding layer
@@ -51,12 +52,15 @@ def Text_CNN(sequence_length, num_classes, vocab_size, embedding_size, filter_si
         W = tf.get_variable("W",
                             shape=[num_filters_total, num_classes],
                             initializer=tf.contrib.layers.xavier_initializer())
-        b = tf.Variable(tf.constant(0.1,shape = [num_classes]), name="b")
+        b = tf.Variable(tf.constant(0.1, shape=[num_classes]), name="b")
         scores = tf.nn.xw_plus_b(h_dropout, W, b, name="scores")
         predictions = tf.argmax(scores, 1, name="predictions")
+
+    with tf.name_scope("loss"):
+        loss = tf.nn.softmax(scores, )
 
     with tf.name_scope("accuracy"):
         correct_predictions = tf.equal(predictions, tf.argmax(input_y, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
 
-    return h_dropout, accuracy
+    return h_dropout, loss, accuracy
