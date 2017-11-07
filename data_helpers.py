@@ -2,7 +2,15 @@ import numpy as np
 import re
 import itertools
 from collections import Counter
+from tensorflow.contrib import learn
 
+positive_data_file = "data/rt-polarity.pos"
+negative_data_file = "data/rt-polarity.neg"
+dev_sample_percentage = 0.1
+batch_size = 64
+num_epochs = 200
+evaluate_every = 100 #Evaluate model on dev set after this many steps (default: 100)
+checkpoint_every = 100 #Save model after this many steps (default: 100)
 
 def clean_str(string):
     """
@@ -23,7 +31,6 @@ def clean_str(string):
     string = re.sub(r"\?", " \? ", string)
     string = re.sub(r"\s{2,}", " ", string)
     return string.strip().lower()
-
 
 def load_data_and_labels(positive_data_file, negative_data_file):
     """
@@ -63,3 +70,50 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
             start_index = batch_num * batch_size
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
+
+def load_data():
+    # Load data
+    print("Loading data...")
+    x_text, y = load_data_and_labels(positive_data_file, negative_data_file)
+
+    # Build vocabulary
+    max_document_length = max([len(x.split(" ")) for x in x_text])
+    vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
+    x = np.array(list(vocab_processor.fit_transform(x_text)))
+
+    # Randomly shuffle data
+    np.random.seed(10)
+    shuffle_indices = np.random.permutation(np.arange(len(y)))
+    x_shuffled = x[shuffle_indices]
+    y_shuffled = y[shuffle_indices]
+
+    # Split train/test set
+    dev_sample_index = -1 * int(dev_sample_percentage * float(len(y)))
+    x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[dev_sample_index:]
+    y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[dev_sample_index:]
+    print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
+    print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
+    return x_train, x_dev, y_train, y_dev
+
+if __name__ == "__main__":
+    #temp = []
+    #temp = load_data_and_labels(positive_data_file,negative_data_file)
+    load_data()
+
+
+'''
+        batches = data_helpers.batch_iter(
+            list(zip(x_train, y_train)), batch_size, num_epochs)
+        # Training loop. For each batch...
+        for batch in batches:
+            x_batch, y_batch = zip(*batch)
+            train_step(x_batch, y_batch)
+            current_step = tf.train.global_step(sess, global_step)
+            if current_step % evaluate_every == 0:
+                print("\nEvaluation:")
+                dev_step(x_dev, y_dev, writer=dev_summary_writer)
+                print("")
+            if current_step % checkpoint_every == 0:
+                path = saver.save(sess, checkpoint_prefix, global_step=current_step)
+                print("Saved model checkpoint to {}\n".format(path))
+'''

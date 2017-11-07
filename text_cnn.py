@@ -2,10 +2,26 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import data_helpers
+from data_helpers import load_data
+from data_helpers import batch_iter
 
+#super para need to adjust
+vocab_size = ?
+sequence_length = ?
 filter_sizes = [2,3,4]
 embedding_size = 4
 num_filters=5# each filter_size has the same number of filter
+
+dev_sample_percentage = 0.1
+batch_size = 64
+num_epochs = 200
+evaluate_every = 100 #Evaluate model on dev set after this many steps (default: 100)
+checkpoint_every = 100 #Save model after this many steps (default: 100)
+
+input_x = tf.placeholder(tf.int32, [None, sequence_length], name="input_x")
+input_y = tf.placeholder(tf.float32, [None, num_classes], name="input_y")
+dropout_keep_prob = tf.placeholder(tf.float32, name="dropout_keep_prob")
 
 def embedding(input_x):
     # Embedding layer
@@ -15,7 +31,7 @@ def embedding(input_x):
             name="W")
         embedded_chars = tf.nn.embedding_lookup(W, input_x)
         embedded_chars_expanded = tf.expand_dims(embedded_chars, -1)
-        return
+        return embedded_chars_expanded
 
 def conv(embedded_chars_expanded):
     # Create a convolution + maxpool layer for each filter size
@@ -43,3 +59,26 @@ def dropout(x):
     return tf.nn.dropout(x,keep_prob=0.5)
 
 def training():
+    x_train, x_dev, y_train, y_dev = load_data()
+    batches = data_helpers.batch_iter(
+        list(zip(x_train, y_train)), batch_size, num_epochs)
+
+
+
+    cross_entropy = -tf.reduce_sum(y_actual * tf.log(y_predict))
+    train_step = tf.train.GradientDescentOptimizer(0.0005).minimize(cross_entropy)
+    correct_prediction = tf.equal(tf.argmax(y_predict, 1), tf.argmax(y_actual, 1))
+    accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
+    # Training loop. For each batch...
+    with tf.Session() as sess:
+        sess = tf.InteractiveSession()
+        sess.run(tf.initialize_all_variables())
+        for i in range(20000):
+            batch = mnist.train.next_batch(50)
+            if i % 100 == 0:
+                train_acc = accuracy.eval(feed_dict={x: batch[0], y_actual: batch[1], keep_prob: 1.0})
+                print ('step %d, training accuracy %g' % (i, train_acc))
+                train_step.run(feed_dict={x: batch[0], y_actual: batch[1], keep_prob: 0.5})
+
+        test_acc = accuracy.eval(feed_dict={x: mnist.test.images, y_actual: mnist.test.labels, keep_prob: 1.0})
+        print ("test accuracy %g" % test_acc)
