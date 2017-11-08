@@ -9,11 +9,6 @@ from data_helpers import batch_iter
 
 def text_cnn(input_x, input_y, dropout_keep_prob, sequence_length, num_classes, vocab_size, embedding_size, filter_sizes, num_filters):
 
-    # with tf.name_scope("feed"):
-    #     input_x = tf.placeholder([None, sequence_length], tf.int32)
-    #     input_y = tf.placeholder([None, num_classes], tf.float32)
-    #     dropout_keep_prob = tf.placeholder(tf.float32)
-
     with tf.name_scope("Embedding_layer"):
         # Embedding layer
         with tf.device('/cpu:0'), tf.name_scope("embedding"):
@@ -55,12 +50,12 @@ def text_cnn(input_x, input_y, dropout_keep_prob, sequence_length, num_classes, 
         predictions = tf.argmax(scores, 1, name="predictions")
 
     with tf.name_scope("loss"):
-        #y_predict = tf.nn.softmax(scores)
-        #loss = tf.reduce_sum(input_y*tf.log(y_predict)
-        loss = tf.nn.softmax_cross_entropy_with_logits(scores, input_y)
+        # y_predict = tf.nn.softmax(scores)
+        # loss = tf.reduce_sum(input_y*tf.log(y_predict)
+        loss = tf.nn.softmax_cross_entropy_with_logits(labels=input_y, logits=scores)
 
     with tf.name_scope("accuracy"):
-        correct_predictions = tf.equal(predictions, tf.argmax(input_y, 1))
+        correct_predictions = tf.equal(predictions, tf.argmax(input_y, 1)) # through the correct_prediction to get accuracy
         accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
 
     return h_dropout, loss, accuracy

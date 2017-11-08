@@ -9,7 +9,6 @@ from nn import text_cnn
 from data_helpers import batch_iter
 
 # super para need to adjust
-#filter_sizes = "3,4,5"
 filter_sizes = [3, 4, 5]
 embedding_size = 4
 num_filters = 5  # each filter_size has the same number of filter
@@ -39,19 +38,21 @@ h_dropout, loss, accuracy = text_cnn(
     num_classes=y_train.shape[1],
     vocab_size=vocab_size,
     embedding_size=embedding_dim,
-    #filter_sizes=list(map(int, filter_sizes.split(","))),
     filter_sizes=filter_sizes,
     num_filters=num_filters)
 
-global_step = tf.Variable(0, name="global_step2", trainable=False)
+global_step = tf.Variable(0, name="global_step", trainable=False)
 train_op = tf.train.AdamOptimizer(1e-3).minimize(loss, global_step=global_step)
 # Training loop. For each batch...
 with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     for i in range(200):
-        batches = data_helpers.batch_iter(list(zip(x_train, y_train)), batch_size, num_epochs)
+        batches = data_helpers.batch_iter(x_train, y_train, batch_size, num_epochs)
         for batch in batches:
-            x_batch, y_batch = zip(*batch)
+            x_batch, y_batch = zip(*batch)  # reverse zip
             _, step_, summaries_, loss_, accuracy_ = sess.run(
                 [train_op, global_step, train_op, loss, accuracy],
                 feed_dict={input_x: x_batch, input_y: y_batch, dropout_keep_prob: dkp})
+            #print "accuracy:", accuracy_
+        if i % 1 == 0:
+            print "i=", i, "accuracy:", accuracy_
